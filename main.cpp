@@ -1,39 +1,64 @@
 #include "Temperature_map.h"
 
 #include <iostream>
+#include <sstream>
 
-int main(){
-    double dt = 1*pow(10, -8);
-    Temperature_map A(5*pow(10, -6), dt, 10, 10, 10,
-                       0.24, 5*pow(10, -6), 24,
-                       100, 25*sqrt(2)*pow(10, -6), 2, 300, 2500*dt);
+int main(int argc, char* argv[]){
+    std::stringstream stream;
+    stream << argv[1];
+    double p;
+    stream >> p;
 
+    double dr = 0.5*pow(10, -6);
+    double dt = 60*pow(10, -9);
+    int Nx = 400;
+    int Ny = 100;
+    int Nz = 150;
+    double absorb = 0.24;
+    double D = 5*pow(10, -6);
+    double k = 24;
+    int Tm = 1563;
+    double a = 50*pow(10, -6);
+    double v = 0.8;
+    double T0 = 293;
 
-    for(int i = 0; i<10; i++){
-        for(int j = 0; j<10; j++){
-            std::cout << A.temp_map[i][j][0] << " ";
-        }
-        std::cout<<std::endl;
+    Temperature_map A(dr, dt, Nx, Ny, Nz,
+                      absorb, D, k,
+                      p, a, v, T0, 10000);
+
+    auto temp_map = new double*[Nx];
+    for(int i = 0; i < Nx; i++){
+        temp_map[i] = new double[Nz];
     }
-    std::cout << std::endl;
-    /*
-    for(int i = 0; i<10; i++){
-        for(int j = 0; j<10; j++){
-            for(int k = 0; k<10; k++){
-                A.temp_map[i][j][k] = A.integrate(i, j, k, (1/(1000*dt)));
+
+    for(int i = 0; i < Nx; i++){
+        for(int j = 0; j < Nz; j++){
+                temp_map[i][j] = 293 + A.integrate(i - Nx/2, 0, j);
+        }
+    }
+
+    int depth = 0;
+
+    for(int i = 0; i < Nx; i++){
+        for(int j = 0; j < Nz; j++){
+            //std::cout << temp_map[i][j] << " ";
+            if(temp_map[i][j] < Tm){
+                //std::cout << j << '\n';
+                if(depth < j){
+                    depth = j;
+                }
+                break;
             }
         }
-    }
-    */
-
-    for(int i = 0; i<2499; i++){
-        A.update();
+        //std::cout << '\n';
     }
 
-    for(int i = 0; i<10; i++){
-        for(int j = 0; j<10; j++){
-            std::cout << A.temp_map[i][j][0] << " ";
-        }
-        std::cout << std::endl;
+    for(int i = 0; i < Nz; i++){
+        delete[] temp_map[i];
     }
+    delete[] temp_map;
+
+    std::cout << depth*dr/pow(D*a*pow(2, 0.5)/v, 0.5) << ' ' << depth << std::endl;
+
+    return 0;
 }
