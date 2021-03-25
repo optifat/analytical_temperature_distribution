@@ -13,9 +13,9 @@ int main(int argc, char* argv[]){
 
     double dr = 0.5*pow(10, -6);
     double dt = 60*pow(10, -9);
-    int Nx = 100;
-    int Ny = 1;
-    int Nz = 100;
+    int Nx = 400;
+    int Ny = 100;
+    int Nz = 150;
     double absorb = 0.25;
     double D = 5*pow(10, -6);
     double k = 26;
@@ -107,15 +107,15 @@ int main(int argc, char* argv[]){
     for(int i = 0; i < Nx && !smallNy; i++){
         right = -1;
         for(int j = 0; j < Ny; j++){
-            if(temp_map_width_length[i][j] >= Tm && right == -1){
+            if(temp_map_width_length[i][j] >= Tm && (j == 0 || j+1 == Ny)){
+                smallNy = true;
+            }
+            else if(temp_map_width_length[i][j] >= Tm && right == -1){
                 right = j;
             }
             else if(temp_map_width_length[i][j] < Tm && right != -1){
                 width = j - right;
                 break;
-            }
-            else if(temp_map_width_length[i][j] >= Tm && (j == 0 || j+1 == Ny)){
-                smallNy = true;
             }
         }
     }
