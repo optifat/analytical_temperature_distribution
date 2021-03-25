@@ -33,12 +33,19 @@ double Temperature_map::integrate(int x, int y, int z){
     double integral = 0;
     double y_square = y*y*dr_square;
     double z_square = z*z*dr_square;
+
+    double time;
+    double divider;
+    double x_new;
+    double power;
+    double result;
+
     for(int t = 1; t < t_max_steps; t++){
-        double time = t*dt;
-        double divider = 1/(2*D*time + a*a);
-        double x_new = x*dr+v*time;
-        double power = (x_new*x_new + y_square)*0.5*divider + z_square/(4*D*time);
-        double result =  exp(-power);
+        time = t*dt;
+        divider = 1/(2*D*time + a*a);
+        x_new = x*dr+v*time;
+        power = (x_new*x_new + y_square)*0.5*divider + z_square/(4*D*time);
+        result =  exp(-power);
         result *= dt/sqrt(time) * divider;
         integral += result;
     }
