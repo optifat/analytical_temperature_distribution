@@ -122,7 +122,7 @@ int main(int argc, char* argv[]){
 
     int length = 0;
     int tail = -1;
-    bool smallNx;
+    bool smallNx = false;
 
     for(int i = 0; i < Nx; i++){
         if(temp_map_width_length[i][0] >= Tm && tail == -1){
