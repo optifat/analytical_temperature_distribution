@@ -1,9 +1,8 @@
 #include "Temperature_map.h"
 
-#include <iostream>
 
 Temperature_map::Temperature_map(double dr, double dt, int Nx, int Ny, int Nz,
-                                 double A, double D, double k,
+                                 double A, double D, double k, double cp,
                                  double P, double a, double v, double T0, double t_max_steps){
 
     this->dr = dr;
@@ -16,6 +15,7 @@ Temperature_map::Temperature_map(double dr, double dt, int Nx, int Ny, int Nz,
     this->A = A;
     this->D = D;
     this->k = k;
+    this->cp = cp;
 
     this->P = P;
     this->a = a;
@@ -23,74 +23,25 @@ Temperature_map::Temperature_map(double dr, double dt, int Nx, int Ny, int Nz,
     this->T0 = T0;
     this->t_max_steps = t_max_steps;
 
-    temp_map = new double**[Nx];
-    for(int i = 0; i < Nx; i++){
-        temp_map[i] = new double*[Ny];
-        for(int j = 0; j < Ny; j++){
-            temp_map[i][j] = new double[Nz];
-        }
-    }
-
-    for(int i = 0; i < Nx; i++){
-        for(int j = 0; j < Ny; j++){
-            for(int l = 0; l < Nz; l++){
-                temp_map[i][j][l] = this->T0;
-            }
-        }
-    }
-
+    this->factor = A*P/(M_PI*cp*sqrt(4*M_PI*D));
+    this->dr_square = dr*dr;
 }
 
-Temperature_map::~Temperature_map(){
-    for(int i = 0; i < Nx; i++){
-        for(int j = 0; j < Ny; j++){
-            delete[] temp_map[i][j];
-        }
-        delete[] temp_map[i];
-    }
-    delete[] temp_map;
-}
-
-void Temperature_map::update() {
-    current_t++;
-    for(int i = 0; i < Nx; i++){
-        for(int j = 0; j < Ny; j++){
-            for(int l = 0; l < Nz; l++){
-                temp_map[i][j][l] += calc_dT(i, j, l);
-            }
-        }
-    }
-}
-
-double Temperature_map::calc_dT(int x, int y, int z) {
-    double power = (pow(x*dr-v*current_t*dt, 2)+y*dr*y*dr)/(4*D*(t_max_steps-current_t)*dt+a*a)
-                    + z*dr*z*dr/(4*D*(t_max_steps - current_t)*dt);
-    double result =  exp(-power);
-    result *= dt/(sqrt((t_max_steps - current_t)*dt)*((t_max_steps - current_t)*dt+a*a/4/D));
-    return A*P/(2*M_PI*k*sqrt(4*M_PI*D))*result;
-}
+Temperature_map::~Temperature_map() = default;
 
 double Temperature_map::integrate(int x, int y, int z){
     double integral = 0;
+    double y_square = y*y*dr_square;
+    double z_square = z*z*dr_square;
     for(int t = 1; t < t_max_steps; t++){
-        double power = (pow((x*dr+v*t*dt),2) + y*y*dr*dr)/(4*D*t*dt + 2*a*a) + z*z*dr*dr/(4*D*t*dt);
+        double time = t*dt;
+        double divider = 1/(2*D*time + a*a);
+        double x_new = x*dr+v*time;
+        double power = (x_new*x_new + y_square)*0.5*divider + z_square/(4*D*time);
         double result =  exp(-power);
-        result *= dt/sqrt(t*dt)/(2*D*t*dt + a*a) * A*P/(M_PI*k/D*sqrt(4*M_PI*D));
+        result *= dt/sqrt(time) * divider;
         integral += result;
     }
-    return integral;
-}
-
-double Temperature_map::integrate_2(int x, int y, int z){
-    a = this->a*pow(2, 0.5);
-    double p = D/(v*a);
-
-    double integral = 0;
-    for(int t = 1; t < t_max_steps; t++){
-        double power = (pow((x*dr+t*dt),2) + y*y*dr*dr)/(4*p*t*dt + 1) + z*z*dr*dr/(4*t*dt);
-        double result =  exp(-power);
-        result *= dt/sqrt(t*dt)/(4*p*t*dt + 1) * A*P/(M_PI*k/D*sqrt(M_PI*D*v*a*a*a));
-        integral += result;
-    }
+    integral *= factor;
     return integral;
 }

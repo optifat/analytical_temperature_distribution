@@ -21,6 +21,7 @@ private:
     double A;              // absorption coefficient
     double D;              // thermal diffusivity
     double k;              // heat conductivity
+    double cp;
     //experiment parameters
     double P;              // laser power
     double a;              // beam size (exp(-r^2/a^2))
@@ -28,24 +29,18 @@ private:
     double T0;             // T(x == y == z == inf)
     double t_max_steps;    // time of experiment in steps
 
-
-public:
-    double*** temp_map;
+    double factor;
+    double dr_square;
 
 public:
     Temperature_map(double dr, double dt, int Nx, int Ny, int Nz,
-                    double A, double D, double k,
+                    double A, double D, double k, double cp,
                     double P, double a, double v, double T0, double t_max);
 
     ~Temperature_map();
 
-    void update();                         // updates temperature map
-
     double integrate(int x, int y, int z);
-    double integrate_2(int x, int y, int z);
 
-private:
-    double calc_dT(int x, int y, int z);   // x, y, z -- number in steps (actual value divided by step)
 };
 
 #endif //TEMPERATURE_MAP_H
