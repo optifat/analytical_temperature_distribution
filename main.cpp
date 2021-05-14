@@ -114,6 +114,7 @@ int main(int argc, char* argv[]){
             }
             else if(temp_map_width_length[i][j] < Tm){
                 width = 2*(j-1)-1 > width ? 2*(j-1)-1 : width;
+                break;
             }
         }
     }
